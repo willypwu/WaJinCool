@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<style>
+    tr {border:1px solid black;} 
+    td {border:1px solid black; height: 25px; background-color:aliceblue}
+    table {border-collapse:collapse; width: 100%; height: 100vh}
+    li {color: aliceblue}
+    
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+}
+</style>
+    
+<head>
+  <title>Wa! Jin-Cool</title>
+  <script>
+      function init() {
+          ////////////modal + //////////////
+          // Get the modal
+          var addModal = document.getElementById('addModal');
+
+          // Get the button that opens the modal
+          var addBtn = document.getElementById('addRecord');
+
+          // Get the <span> element that closes the modal
+          var span = document.getElementsByClassName('close')[0];
+
+          // When the user clicks the button, open the modal
+          addBtn.onclick = function() {
+            addModal.style.display = "block";
+          }
+
+          // When the user clicks on <span> (x), close the modal
+          span.onclick = function() {
+            addModal.style.display = "none";
+          }
+
+          // When the user clicks anywhere outside of the modal, close it
+          window.onclick = function(event) {
+            if (event.target == addModal) {
+                addModal.style.display = "none";
+            }
+          }
+          ////////////modal - //////////////
+          
+          tableCreate();
+          
+          // get All for init
+          httpRequest = new XMLHttpRequest();
+          httpRequest.onreadystatechange = function() {
+              if (httpRequest.readyState == 4) {
+                  if (httpRequest.status === 200) {                      
+                      var result = JSON.parse(httpRequest.responseText);
+                      
+                      var table = document.getElementById('records');
+                      
+                      var content = result.content;
+                      for (var i = 0; i < result.count; i++) {
+                          // Create an empty <tr> element and add it to the 1st position of the table:
+                          var num = table.rows.length;
+                          var row = table.insertRow(num);
+
+                          // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+
+                          row.insertCell(0).innerHTML = content[i].date;
+                          row.insertCell(1).innerHTML = content[i].cost;
+                          row.insertCell(2).innerHTML = content[i].category;
+                          row.insertCell(3).innerHTML = content[i].comment; 
+                          row.key=content[i].id;
+                          row.ondblclick = function() {
+                              alert("delete : " + row.key)
+                              tableRowClick(row.key);
+                          }
+//                          (function(i) {
+//                              row.ondblclick = function() {
+//                                  tableRowClick(content[i].id);
+//                              }
+//                          })(i);
+                      }
+                  }
+              }
+          }
+          httpRequest.open('GET', 'https://wajincool.appspot.com/moneyHandle');
+          httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          httpRequest.send();
+          addModal.style.display = "none";
+      }
+      
+      function tableCreate() {
+          var table = document.createElement('table');
+          table.id='records'
+          table.style.height='auto';
+          
+          var tr = document.createElement('tr');  
+          tr.style.color = "white";
+          var td1 = document.createElement('td');
+          td1.innerHTML="日期";
+          td1.style.backgroundColor = "#37545d";
+          td1.style.height="auto";
+          var td2 = document.createElement('td');
+          td2.style.backgroundColor = "#37545d";
+          td2.style.height="auto";
+          td2.innerHTML="金額";
+          var td3 = document.createElement('td');
+          td3.style.backgroundColor = "#37545d";
+          td3.style.height="auto";
+          td3.innerHTML="分類";
+          var td4 = document.createElement('td');
+          td4.style.backgroundColor = "#37545d";
+          td4.style.height="auto";
+          td4.innerHTML="備註";
+                
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tr.appendChild(td3);
+          tr.appendChild(td4);
+
+          table.appendChild(tr);
+          document.getElementById("content").appendChild(table);
+      }
+      
+      function tableRowClick(id) {
+          httpRequest = new XMLHttpRequest();
+          httpRequest.onreadystatechange = function() {
+              if (httpRequest.readyState == 4) {
+                  if (httpRequest.status === 200) {                      
+                      var result = JSON.parse(httpRequest.responseText);
+                      var table = document.getElementById("records");
+                      for (var i = 0, row; row = table.rows[i]; i++) {
+                          if (row.key == result.id) {
+                              table.deleteRow(i);
+                              break;
+                          }
+                      }
+                  }
+              }
+          }
+          httpRequest.open('DELETE', 'https://wajincool.appspot.com/moneyHandle/' + id);          
+          httpRequest.send();          
+      }
+      
+      function addRecordData() {          
+          var params =
+              "&date=" + document.getElementById('addInputDate').value + 
+              "&cost=" + document.getElementById('addInputCost').value + 
+              "&category=" + document.getElementById('addInputCategory').value +
+              "&comment=" + document.getElementById('addInputComment').value;
+          
+          httpRequest = new XMLHttpRequest();
+          httpRequest.onreadystatechange = function() {
+              if (httpRequest.readyState == 4) {
+                  if (httpRequest.status === 200) {
+                      var result = JSON.parse(httpRequest.responseText);                      
+                      var table = document.getElementById('records');
+                      // Create an empty <tr> element and add it to the 1st position of the table:
+                      var num = table.rows.length;
+                      var row = table.insertRow(num);
+
+                      // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+                      
+                      row.insertCell(0).innerHTML = result.date;
+                      row.insertCell(1).innerHTML = result.cost;
+                      row.insertCell(2).innerHTML = result.category;
+                      row.insertCell(3).innerHTML = result.comment; 
+                      row.key=result.id;
+                      row.ondblclick = function() {
+                          tableRowClick(row.key);
+                      }
+                  }
+              }
+          }
+          httpRequest.open('POST', 'https://wajincool.appspot.com/moneyHandle');
+          httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          httpRequest.send(params);
+          
+          addModal.style.display = "none";
+       }
+  </script>
+</head>
+    
+<body background="/static/background.jpg" onload="init()">
+
+    <div id="container" >
+        <div id="header" style="text-align: center;color:#FFF">
+            <h1 style="margin-bottom:0;text-shadow: 2px 2px #5fba7d; font-size:300%">哇 金庫</h1>
+        </div>
+        
+        <div id="button_area" style="width:100%;color:#FFF; height:30px">
+            <button id="addRecord">新增</button>
+
+            <div id="addModal" class="modal">
+              <!-- Modal content -->
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <span class="close">x</span>
+                      <h2 style="color:black">新增資料</h2>
+                  </div>
+                
+                  <form style="color:black">
+                      日期：
+                      <input id="addInputDate" type="text" name="date">
+                      <br />
+                      金額：
+                      <input id="addInputCost" type="text" name="cost">
+                      <br />
+                      分類：
+                      <input id="addInputCategory" type="text" name="category">
+                      <br />
+                      備註：
+                      <input id="addInputComment" type="text" name="comment">
+                  </form>
+                  
+                  <div class="modal-footer">
+                      <button type="button" onclick=addRecordData()>儲存</button>
+                  </div>
+              </div>
+            </div>
+        </div>
+
+        <div id="menu" style="background-color:#272727;height:100vh;width:20%;float:left;border: 1px solid black;margin-bottom: 2cm;">
+            <ul>
+                <li>總收入:</li>
+                <li>總支出:</li>
+            </ul>
+        </div>
+
+        <div id="content" style="background-color:#8E8E8E;height:100vh;width:60%;float:left;border: 1px solid black;margin-bottom: 2cm;">
+        </div>
+
+        <div id="footer" style="background-color:#FCFCFC;color:#4F4F4F;clear:both;text-align:center;position:fixed;bottom: 0px;width:100%">版權所有 © Willy Wu</div>
+    </div>
+</body>
+</html>
