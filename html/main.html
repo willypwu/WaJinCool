@@ -12,11 +12,11 @@
     .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
-        z-index: 1; /* Sit on top */
+        z-index: 0; 
         left: 0;
         top: 0;
-        width: 100%; /* Full width */
-        height: 100%; /* Full height */
+        width: 100%;
+        height: 100%;
         overflow: auto; /* Enable scroll if needed */
         background-color: rgb(0,0,0); /* Fallback color */
         background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
@@ -32,186 +32,253 @@
     }
 
     /* The Close Button */
-    .close {
+    .op_record_dia_close {
         color: #aaa;
         float: right;
         font-size: 28px;
         font-weight: bold;
     }
 
-    .close:hover,
-    .close:focus {
+    .op_record_dia_close:hover,
+    .op_record_dia_close:focus {
         color: black;
         text-decoration: none;
         cursor: pointer;
-}
+    }
+    
 </style>
     
 <head>
-  <title>Wa! Jin-Cool</title>
-  <script>
-      function init() {
-          ////////////modal + //////////////
-          // Get the modal
-          var addModal = document.getElementById('addModal');
+    <title>Wa! Jin-Cool</title>
+    <link rel="stylesheet" href="../static/css/pikaday.css">
+    <script>
+        function init() {
+            initOperateRecordDialog();
+            initTable();          
+        }
+      
+        function initOperateRecordDialog() {
+            // Get the modal
+            var operateRecordDialog = document.getElementById('operateRecordDialog');
 
-          // Get the button that opens the modal
-          var addBtn = document.getElementById('addRecord');
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName('op_record_dia_close')[0];
 
-          // Get the <span> element that closes the modal
-          var span = document.getElementsByClassName('close')[0];
-
-          // When the user clicks the button, open the modal
-          addBtn.onclick = function() {
-            addModal.style.display = "block";
-          }
-
-          // When the user clicks on <span> (x), close the modal
-          span.onclick = function() {
-            addModal.style.display = "none";
-          }
-
-          // When the user clicks anywhere outside of the modal, close it
-          window.onclick = function(event) {
-            if (event.target == addModal) {
-                addModal.style.display = "none";
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+                operateRecordDialog.style.display = "none";
             }
-          }
-          ////////////modal - //////////////
-          
-          tableCreate();
-          
-          // get All for init
-          httpRequest = new XMLHttpRequest();
-          httpRequest.onreadystatechange = function() {
-              if (httpRequest.readyState == 4) {
-                  if (httpRequest.status === 200) {                      
-                      var result = JSON.parse(httpRequest.responseText);
-                      
-                      var table = document.getElementById('records');
-                      
-                      var content = result.content;
-                      for (var i = 0; i < result.count; i++) {
-                          // Create an empty <tr> element and add it to the 1st position of the table:
-                          var num = table.rows.length;
-                          var row = table.insertRow(num);
 
-                          // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-
-                          row.insertCell(0).innerHTML = content[i].date;
-                          row.insertCell(1).innerHTML = content[i].cost;
-                          row.insertCell(2).innerHTML = content[i].category;
-                          row.insertCell(3).innerHTML = content[i].comment; 
-                          row.key=content[i].id;
-                          row.ondblclick = function() {
-                              alert("delete : " + row.key)
-                              tableRowClick(row.key);
-                          }
-//                          (function(i) {
-//                              row.ondblclick = function() {
-//                                  tableRowClick(content[i].id);
-//                              }
-//                          })(i);
-                      }
-                  }
-              }
-          }
-          httpRequest.open('GET', 'https://wajincool.appspot.com/moneyHandle');
-          httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-          httpRequest.send();
-          addModal.style.display = "none";
-      }
+            // When the user clicks anywhere outside of the modal, close it
+//            window.onclick = function(event) {
+//                if (event.target == operateRecordDialog) {
+//                    operateRecordDialog.style.display = "none";
+//                }
+//            }
+            operateRecordDialog.style.display = "none";
+        }
       
-      function tableCreate() {
-          var table = document.createElement('table');
-          table.id='records'
-          table.style.height='auto';
+        function initTable() {
+            var table = document.createElement('table');
+            table.id='records'
+            table.style.height='auto';
           
-          var tr = document.createElement('tr');  
-          tr.style.color = "white";
-          var td1 = document.createElement('td');
-          td1.innerHTML="日期";
-          td1.style.backgroundColor = "#37545d";
-          td1.style.height="auto";
-          var td2 = document.createElement('td');
-          td2.style.backgroundColor = "#37545d";
-          td2.style.height="auto";
-          td2.innerHTML="金額";
-          var td3 = document.createElement('td');
-          td3.style.backgroundColor = "#37545d";
-          td3.style.height="auto";
-          td3.innerHTML="分類";
-          var td4 = document.createElement('td');
-          td4.style.backgroundColor = "#37545d";
-          td4.style.height="auto";
-          td4.innerHTML="備註";
+            var tr = document.createElement('tr');  
+            tr.style.color = "white";
+            var td1 = document.createElement('td');
+            td1.innerHTML="日期";
+            td1.style.backgroundColor = "#37545d";
+            td1.style.height="auto";
+            var td2 = document.createElement('td');
+            td2.style.backgroundColor = "#37545d";
+            td2.style.height="auto";
+            td2.innerHTML="金額";
+            var td3 = document.createElement('td');
+            td3.style.backgroundColor = "#37545d";
+            td3.style.height="auto";
+            td3.innerHTML="分類";
+            var td4 = document.createElement('td');
+            td4.style.backgroundColor = "#37545d";
+            td4.style.height="auto";
+            td4.innerHTML="備註";
                 
-          tr.appendChild(td1);
-          tr.appendChild(td2);
-          tr.appendChild(td3);
-          tr.appendChild(td4);
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
 
-          table.appendChild(tr);
-          document.getElementById("content").appendChild(table);
-      }
-      
-      function tableRowClick(id) {
-          httpRequest = new XMLHttpRequest();
-          httpRequest.onreadystatechange = function() {
-              if (httpRequest.readyState == 4) {
-                  if (httpRequest.status === 200) {                      
-                      var result = JSON.parse(httpRequest.responseText);
-                      var table = document.getElementById("records");
-                      for (var i = 0, row; row = table.rows[i]; i++) {
-                          if (row.key == result.id) {
-                              table.deleteRow(i);
-                              break;
-                          }
-                      }
-                  }
-              }
-          }
-          httpRequest.open('DELETE', 'https://wajincool.appspot.com/moneyHandle/' + id);          
-          httpRequest.send();          
-      }
-      
-      function addRecordData() {          
-          var params =
-              "&date=" + document.getElementById('addInputDate').value + 
-              "&cost=" + document.getElementById('addInputCost').value + 
-              "&category=" + document.getElementById('addInputCategory').value +
-              "&comment=" + document.getElementById('addInputComment').value;
+            table.appendChild(tr);
+            document.getElementById("content").appendChild(table);
           
-          httpRequest = new XMLHttpRequest();
-          httpRequest.onreadystatechange = function() {
-              if (httpRequest.readyState == 4) {
-                  if (httpRequest.status === 200) {
-                      var result = JSON.parse(httpRequest.responseText);                      
-                      var table = document.getElementById('records');
-                      // Create an empty <tr> element and add it to the 1st position of the table:
-                      var num = table.rows.length;
-                      var row = table.insertRow(num);
-
-                      // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+            requestAllRecords();
+        }
+      
+        function requestAllRecords() {
+            // get All for init
+            httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = function() {
+                if (httpRequest.readyState == 4) {
+                    if (httpRequest.status === 200) {                      
+                        var result = JSON.parse(httpRequest.responseText);
                       
-                      row.insertCell(0).innerHTML = result.date;
-                      row.insertCell(1).innerHTML = result.cost;
-                      row.insertCell(2).innerHTML = result.category;
-                      row.insertCell(3).innerHTML = result.comment; 
-                      row.key=result.id;
-                      row.ondblclick = function() {
-                          tableRowClick(row.key);
-                      }
-                  }
-              }
-          }
-          httpRequest.open('POST', 'https://wajincool.appspot.com/moneyHandle');
-          httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-          httpRequest.send(params);
+                        var table = document.getElementById('records');
+                      
+                        var content = result.content;
+                        for (var i = 0; i < result.count; i++) {
+                            // Create an empty <tr> element and add it to the 1st position of the table:
+                            var num = table.rows.length;
+                            var row = table.insertRow(num);
+
+                            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+
+                            row.insertCell(0).innerHTML = content[i].date;
+                            row.insertCell(1).innerHTML = content[i].cost;
+                            row.insertCell(2).innerHTML = content[i].category;
+                            row.insertCell(3).innerHTML = content[i].comment; 
+                            row.key=content[i].id;
+                            (function(i) {
+                                row.ondblclick = function() {
+                                    tableRowClick(content[i].id);
+                                }
+                            })(i);
+                        }
+                    }
+                }
+            }
+            httpRequest.open('GET', '/moneyHandle');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            httpRequest.send();          
+        }
+      
+        function tableRowClick(id) {
+            openRecordDialog();
+              
+            var table = document.getElementById("records");
+            for (var i = 0, row; row = table.rows[i]; i++) {
+                if (row.key == id) {
+                    document.getElementById('dialogInputDate').value = row.cells[0].innerHTML;
+                    document.getElementById('dialogInputCost').value = row.cells[1].innerHTML;
+                    document.getElementById('dialogInputCategory').value = row.cells[2].innerHTML;
+                    document.getElementById('dialogInputComment').value = row.cells[3].innerHTML;
+                    // assign id to the dialog key attribute
+                    document.getElementById('operateRecordDialog').key=row.key;
+                }
+            }
+            document.getElementById('addRecordBtn').disabled=true;
+            document.getElementById('modifyRecordBtn').disabled=false;
+            document.getElementById('deleteRecordBtn').disabled=false;
+        }
+      
+        function openRecordDialog() {
+            var operateRecordDialog = document.getElementById('operateRecordDialog');
+            operateRecordDialog.style.display = "block";
+        }
+      
+        function closeRecordDialog() {
+            var operateRecordDialog = document.getElementById('operateRecordDialog');
+            operateRecordDialog.style.display = "none";
+        }
+      
+        function newRecordData() {  
+            openRecordDialog();
+            document.getElementById('addRecordBtn').disabled=false;
+            document.getElementById('modifyRecordBtn').disabled=true;
+            document.getElementById('deleteRecordBtn').disabled=true;
+        }
+      
+        function addRecordData() {          
+            var params =
+                "&date=" + document.getElementById('dialogInputDate').value + 
+                "&cost=" + document.getElementById('dialogInputCost').value + 
+                "&category=" + document.getElementById('dialogInputCategory').value +
+                "&comment=" + document.getElementById('dialogInputComment').value;
           
-          addModal.style.display = "none";
-       }
-  </script>
+            httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = function() {
+                if (httpRequest.readyState == 4) {
+                    if (httpRequest.status === 200) {
+                        var result = JSON.parse(httpRequest.responseText);                      
+                        var table = document.getElementById('records');
+                        // Create an empty <tr> element and add it to the 1st position of the table:
+                        var num = table.rows.length;
+                        var row = table.insertRow(num);
+
+                        // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+                        row.insertCell(0).innerHTML = result.date;
+                        row.insertCell(1).innerHTML = result.cost;
+                        row.insertCell(2).innerHTML = result.category;
+                        row.insertCell(3).innerHTML = result.comment; 
+                        row.key=result.id;
+                        row.ondblclick = function() {
+                            tableRowClick(result.id);
+                        }
+                    }
+                }
+            }
+            httpRequest.open('POST', '/moneyHandle');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            httpRequest.send(params);
+          
+            closeRecordDialog();
+        }
+      
+        function modifyRecordData() { 
+            var currentKey = document.getElementById('operateRecordDialog').key
+          
+            var params =
+                "&date=" + document.getElementById('dialogInputDate').value + 
+                "&cost=" + document.getElementById('dialogInputCost').value + 
+                "&category=" + document.getElementById('dialogInputCategory').value +
+                "&comment=" + document.getElementById('dialogInputComment').value;
+          
+            httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = function() {
+                if (httpRequest.readyState == 4) {
+                    if (httpRequest.status === 200) {                      
+                        var result = JSON.parse(httpRequest.responseText);
+                        var table = document.getElementById("records");
+                        for (var i = 0, row; row = table.rows[i]; i++) {
+                            if (row.key == currentKey) {
+                                row.cells[0].innerHTML = result.date;
+                                row.cells[1].innerHTML = result.cost;
+                                row.cells[2].innerHTML = result.category;
+                                row.cells[3].innerHTML = result.comment; 
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            httpRequest.open('PUT', '/moneyHandle/' + currentKey);          
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            httpRequest.send(params);
+          
+            closeRecordDialog();
+        }
+      
+        function deleteRecordData() {  
+            var currentKey = document.getElementById('operateRecordDialog').key          
+            httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = function() {
+                if (httpRequest.readyState == 4) {
+                    if (httpRequest.status === 200) {                      
+                        var result = JSON.parse(httpRequest.responseText);
+                        var table = document.getElementById("records");
+                        for (var i = 0, row; row = table.rows[i]; i++) {
+                            if (row.key == currentKey) {
+                                table.deleteRow(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            httpRequest.open('DELETE', '/moneyHandle/' + currentKey);          
+            httpRequest.send(); 
+          
+            closeRecordDialog();
+        }
+    </script>
 </head>
     
 <body background="/static/background.jpg" onload="init()">
@@ -222,32 +289,34 @@
         </div>
         
         <div id="button_area" style="width:100%;color:#FFF; height:30px">
-            <button id="addRecord">新增</button>
+            <button id="newRecord" type="button" onclick="newRecordData()">新增</button>
 
-            <div id="addModal" class="modal">
+            <div id="operateRecordDialog" class="modal">
               <!-- Modal content -->
               <div class="modal-content">
                   <div class="modal-header">
-                      <span class="close">x</span>
+                      <span class="op_record_dia_close">x</span>
                       <h2 style="color:black">新增資料</h2>
                   </div>
                 
                   <form style="color:black">
                       日期：
-                      <input id="addInputDate" type="text" name="date">
+                      <input id="dialogInputDate" type="text" name="date">
                       <br />
                       金額：
-                      <input id="addInputCost" type="text" name="cost">
+                      <input id="dialogInputCost" type="text" name="cost">
                       <br />
                       分類：
-                      <input id="addInputCategory" type="text" name="category">
+                      <input id="dialogInputCategory" type="text" name="category">
                       <br />
                       備註：
-                      <input id="addInputComment" type="text" name="comment">
+                      <input id="dialogInputComment" type="text" name="comment">
                   </form>
                   
                   <div class="modal-footer">
-                      <button type="button" onclick=addRecordData()>儲存</button>
+                      <button id="addRecordBtn" type="button" onclick=addRecordData()>儲存</button>
+                      <button id="modifyRecordBtn"type="button" onclick=modifyRecordData()>修改</button>
+                      <button id="deleteRecordBtn" type="button" onclick=deleteRecordData()>刪除</button>
                   </div>
               </div>
             </div>
@@ -265,5 +334,23 @@
 
         <div id="footer" style="background-color:#FCFCFC;color:#4F4F4F;clear:both;text-align:center;position:fixed;bottom: 0px;width:100%">版權所有 © Willy Wu</div>
     </div>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
+    <script src="../static/js/pikaday.js"></script>
+    <script>
+        var picker = new Pikaday({
+                field: document.getElementById('dialogInputDate'),
+                firstDay: 1,    
+                minDate: new Date(2000, 0, 1),
+                maxDate: new Date(2020, 12, 31),
+                yearRange: [2000,2020],
+                reposition: false,
+                onOpen: function() {
+                this.el.style.top = document.getElementById('dialogInputDate').offsetTop;
+                this.el.style.left = document.getElementById('dialogInputDate').offsetLeft;
+                }});
+        
+//        picker.setMoment(moment().dayOfYear(366));
+    </script>
 </body>
 </html>

@@ -74,14 +74,14 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         
     def post(self):            
         logging.info("*** post ***")        
-        logging.info("user_date : %s , cost : %s , category : %s , comment : %s", 
+        logging.info("post // user_date : %s , cost : %s , category : %s , comment : %s", 
                      self.request.get('date'), self.request.get('cost'), self.request.get('category'), self.request.get('comment'))
         
         r = MoneyRecord(
             name='willy',
             user_date = self.request.get('date'),
             money = int(self.request.get('cost')), 
-            category=self.request.get('category'), 
+            category= self.request.get('category'), 
             comment = self.request.get('comment'))
         rk = r.put()
 
@@ -103,8 +103,24 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         json_obj = json.dumps(result)
         self.response.out.write(json_obj)
         
-    def put(self):            
-        logging.info("*** put ***")        
+    def put(self, id):            
+        logging.info("*** put ***" + id)  
+        logging.info("put // user_date : %s , cost : %s , category : %s , comment : %s", 
+                     self.request.get('date'), self.request.get('cost'), self.request.get('category'), self.request.get('comment'))
+        updateItem = ndb.Key(urlsafe=id).get()
+        updateItem.user_date = self.request.get('date')
+        updateItem.money = int(self.request.get('cost'))
+        updateItem.category = self.request.get('category')
+        updateItem.comment = self.request.get('comment')
+        updateItem.put()
+        
+        result = {
+            "date": self.request.get('date'), 
+            "cost": self.request.get('cost'), 
+            "category": self.request.get('category'),
+            "comment": self.request.get('comment')} 
+        json_obj = json.dumps(result)
+        self.response.out.write(json_obj)
         
             
 app = webapp2.WSGIApplication([
