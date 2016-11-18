@@ -4,15 +4,15 @@
 
 <style>
     tr {border:1px solid black;} 
-    td {border:1px solid black; height: 25px; background-color:aliceblue}
+    td {border:1px solid black; height: 25px; background-color:t; color: white}
     table {border-collapse:collapse; width: 100%; height: 100vh}
-    li {color: aliceblue}
+    li {color: white}
     
     /* The Modal (background) */
     .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
-        z-index: 0; 
+        z-index: 1; 
         left: 0;
         top: 0;
         width: 100%;
@@ -44,6 +44,29 @@
         color: black;
         text-decoration: none;
         cursor: pointer;
+    }
+    
+     #separator {
+         width:100%;
+         height:1px;
+         background-color:#A7FFEB;
+     }
+    
+    html {
+        height: 100%;
+        width:100%;
+        margin: 0; 
+        padding: 0;
+    }
+        
+    body {
+        background-image: url("/static/background.jpg");
+        background-repeat: no-repeat;
+        background-size:     cover;
+        height: 100%;
+        width:100%;
+        margin: 0; 
+        padding: 0;
     }
     
 </style>
@@ -84,21 +107,24 @@
             table.style.height='auto';
           
             var tr = document.createElement('tr');  
-            tr.style.color = "white";
             var td1 = document.createElement('td');
             td1.innerHTML="日期";
-            td1.style.backgroundColor = "#37545d";
+            td1.style.backgroundColor = "#00BCD4";
+            td1.style.color = "black"
             td1.style.height="auto";
             var td2 = document.createElement('td');
-            td2.style.backgroundColor = "#37545d";
+            td2.style.backgroundColor = "#00BCD4";
+            td2.style.color = "black"
             td2.style.height="auto";
             td2.innerHTML="金額";
             var td3 = document.createElement('td');
-            td3.style.backgroundColor = "#37545d";
+            td3.style.backgroundColor = "#00BCD4";
+            td3.style.color = "black"
             td3.style.height="auto";
             td3.innerHTML="分類";
             var td4 = document.createElement('td');
-            td4.style.backgroundColor = "#37545d";
+            td4.style.backgroundColor = "#00BCD4";
+            td4.style.color = "black"
             td4.style.height="auto";
             td4.innerHTML="備註";
                 
@@ -108,7 +134,7 @@
             tr.appendChild(td4);
 
             table.appendChild(tr);
-            document.getElementById("content").appendChild(table);
+            document.getElementById("record_area").appendChild(table);
           
             requestAllRecords();
         }
@@ -121,6 +147,8 @@
                     if (httpRequest.status === 200) {                      
                         var result = JSON.parse(httpRequest.responseText);
                       
+                        document.getElementById('user_name').innerHTML = result.user
+                        
                         var table = document.getElementById('records');
                       
                         var content = result.content;
@@ -281,55 +309,57 @@
     </script>
 </head>
     
-<body background="/static/background.jpg" onload="init()">
-
-    <div id="container" >
-        <div id="header" style="text-align: center;color:#FFF">
-            <h1 style="margin-bottom:0;text-shadow: 2px 2px #5fba7d; font-size:300%">哇 金庫</h1>
-        </div>
-        
-        <div id="button_area" style="width:100%;color:#FFF; height:30px">
-            <button id="newRecord" type="button" onclick="newRecordData()">新增</button>
-
-            <div id="operateRecordDialog" class="modal">
-              <!-- Modal content -->
-              <div class="modal-content">
-                  <div class="modal-header">
-                      <span class="op_record_dia_close">x</span>
-                      <h2 style="color:black">新增資料</h2>
-                  </div>
-                
-                  <form style="color:black">
-                      日期：
-                      <input id="dialogInputDate" type="text" name="date">
-                      <br />
-                      金額：
-                      <input id="dialogInputCost" type="text" name="cost">
-                      <br />
-                      分類：
-                      <input id="dialogInputCategory" type="text" name="category">
-                      <br />
-                      備註：
-                      <input id="dialogInputComment" type="text" name="comment">
-                  </form>
-                  
-                  <div class="modal-footer">
-                      <button id="addRecordBtn" type="button" onclick=addRecordData()>儲存</button>
-                      <button id="modifyRecordBtn"type="button" onclick=modifyRecordData()>修改</button>
-                      <button id="deleteRecordBtn" type="button" onclick=deleteRecordData()>刪除</button>
-                  </div>
-              </div>
+<body onload="init()">
+    <div id="container" style="height:100%;width:100%">        
+        <div id="header" style="background-color:#009688;color:#FCFCFC;position:fixed;width:100%; top:0px; left:0px;height:135px">
+            <div style="width:100%">
+                <img src="/static/money.png" style="height:90px;width:150px;margin:3px;float:left">
+                <h1 id="user_name" style="text-align:right;margin-bottom:0; padding-right:20px; font-size:100%;position:absolute;right:0;top:50px"></h1>
+                <h1 style="text-align:center;margin-bottom:0;margin-top:0;font-size:45px;position:absolute;left:170px;top:20px">哇!!金庫</h1>
+            </div>
+            <div id="button_area" style="height:40px;width:100%;background-color:#FFf;margin-top:96px">
+                <button id="newRecord" type="button" onclick="newRecordData()" 
+                        style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">新增</button>
             </div>
         </div>
-
-        <div id="menu" style="background-color:#272727;height:100vh;width:20%;float:left;border: 1px solid black;margin-bottom: 2cm;">
-            <ul>
-                <li>總收入:</li>
-                <li>總支出:</li>
-            </ul>
-        </div>
-
-        <div id="content" style="background-color:#8E8E8E;height:100vh;width:60%;float:left;border: 1px solid black;margin-bottom: 2cm;">
+        
+        <div id="content_area" style="width:100%;position:absolute;top:135px;bottom:25px">
+            <div id="operateRecordDialog" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="op_record_dia_close">x</span>
+                        <h2 style="color:black">新增資料</h2>
+                    </div>
+                    <form style="color:black">
+                        日期：
+                        <input id="dialogInputDate" type="text" name="date">
+                        <br />
+                        金額：
+                        <input id="dialogInputCost" type="text" name="cost">
+                        <br />
+                        分類：
+                        <input id="dialogInputCategory" type="text" name="category">
+                        <br />
+                        備註：
+                        <input id="dialogInputComment" type="text" name="comment">
+                    </form>
+                    <div class="modal-footer">
+                        <button id="addRecordBtn" type="button" onclick=addRecordData()>儲存</button>
+                        <button id="modifyRecordBtn"type="button" onclick=modifyRecordData()>修改</button>
+                        <button id="deleteRecordBtn" type="button" onclick=deleteRecordData()>刪除</button>
+                    </div>
+                </div>
+            </div>        
+            <div id="info_area" style="background: rgba(0, 0, 0, .6);height:100%;width:35%;border: 1px solid black;box-sizing: border-box;float:left;overflow-y: auto;">
+                <h1 style="text-align:center;background-color:#F44336;margin:0;height:80px;font-size:300%">相關資訊</h1>
+                <ul>
+                    <li>總收入:</li>
+                    <li>總支出:</li>
+                </ul>
+            </div>
+            <div id="record_area" style="background: rgba(0, 0, 0, .8);height:100%;width:65%;float:left;border: 1px solid black;box-sizing: border-box;overflow-y: auto;">
+            </div>
         </div>
 
         <div id="footer" style="background-color:#FCFCFC;color:#4F4F4F;clear:both;text-align:center;position:fixed;bottom: 0px;width:100%">版權所有 © Willy Wu</div>
@@ -349,8 +379,6 @@
                 this.el.style.top = document.getElementById('dialogInputDate').offsetTop;
                 this.el.style.left = document.getElementById('dialogInputDate').offsetLeft;
                 }});
-        
-//        picker.setMoment(moment().dayOfYear(366));
     </script>
 </body>
 </html>

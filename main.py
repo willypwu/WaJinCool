@@ -16,7 +16,7 @@ import webapp2
 from jinja2 import Environment, FileSystemLoader
 
 from google.appengine.ext import ndb
-
+from google.appengine.api import users
 from datetime import datetime
 
 import json
@@ -52,8 +52,9 @@ class MainPage(webapp2.RequestHandler):
 class MoneyRecordHandler(webapp2.RequestHandler):
     
     def get(self):         
-        logging.info("*** get ***")
-        records = MoneyRecord.query_record_by_name('willy').fetch()
+        user = users.get_current_user()
+        logging.info("*** get *** " + str(user))
+        records = MoneyRecord.query_record_by_name(str(user)).fetch()
         content = []
         for record in records:
             logging.info("record // name = %s , date = %s, money = %d, category = %s, comment =%s, id = %s",
@@ -66,6 +67,7 @@ class MoneyRecordHandler(webapp2.RequestHandler):
                   "comment": record.comment
             })
         result = {
+            "user":str(user),
             "count":len(records), 
             "content":content
         }
@@ -77,8 +79,9 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         logging.info("post // user_date : %s , cost : %s , category : %s , comment : %s", 
                      self.request.get('date'), self.request.get('cost'), self.request.get('category'), self.request.get('comment'))
         
+        user = users.get_current_user()
         r = MoneyRecord(
-            name='willy',
+            name=str(user),
             user_date = self.request.get('date'),
             money = int(self.request.get('cost')), 
             category= self.request.get('category'), 
