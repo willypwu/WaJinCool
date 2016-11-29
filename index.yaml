@@ -18,6 +18,18 @@ indexes:
 
 - kind: MoneyRecord
   properties:
+  - name: category
+  - name: name
+  - name: user_date
+
+- kind: MoneyRecord
+  properties:
+  - name: money
+  - name: name
+  - name: user_date
+
+- kind: MoneyRecord
+  properties:
   - name: name
   - name: date
     direction: desc

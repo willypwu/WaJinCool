@@ -98,15 +98,32 @@
     
 <head>
     <title>Wa! Jin-Cool</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" href="../static/css/pikaday.css">
     <script>
         function init() {
-            initOperateRecordDialog();
-            initTable();         
+            initStaticUIs();
+            initOperateRecordDialog();        
             getCategories();
             initAddCateDialog();
+            initTable(); 
         }
       
+        function initStaticUIs() {
+            var today = new Date();
+            var year = moment(today.toString()).format('YYYY')
+            var month = moment(today.toString()).format('MM')
+            year_picker = document.getElementById('year_picker');
+            month_picker = document.getElementById('month_picker');
+            for (var i = 2016 ; i < parseInt(year) + 5 ; i++) {
+                var select_option = new Option(i, i);
+                year_picker.options.add(select_option);
+                
+            }
+            year_picker.value = year;
+            month_picker.value = month;
+        }
+        
         function initOperateRecordDialog() {
             // Get the modal
             var operateRecordDialog = document.getElementById('operateRecordDialog');
@@ -182,11 +199,13 @@
       
         function requestAllRecords() {
             // get All for init
-            httpRequest = new XMLHttpRequest();
-            httpRequest.onreadystatechange = function() {
-                if (httpRequest.readyState == 4) {
-                    if (httpRequest.status === 200) {                      
-                        var result = JSON.parse(httpRequest.responseText);  
+            requestAllRecordsHttpRequest = new XMLHttpRequest();
+            requestAllRecordsHttpRequest.onreadystatechange = function() {
+                if (requestAllRecordsHttpRequest.readyState == 4) {
+                    if (requestAllRecordsHttpRequest.status === 200) {                      
+                        clearTableRecords();
+                        
+                        var result = JSON.parse(requestAllRecordsHttpRequest.responseText);  
                         document.getElementById('user_name').innerHTML = result.user
                         
                         var table = document.getElementById('records');
@@ -210,12 +229,23 @@
                                 }
                             })(i);
                         }
+                        getStatistics();
                     }
                 }
             }
-            httpRequest.open('GET', '/moneyHandle');
-            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            httpRequest.send();          
+            var params =
+                "select_year=" + document.getElementById('year_picker').value + 
+                "&select_month=" + document.getElementById('month_picker').value;
+            requestAllRecordsHttpRequest.open('GET', '/moneyHandle'+"?"+params);
+            requestAllRecordsHttpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            requestAllRecordsHttpRequest.send();          
+        }
+        
+        function clearTableRecords() {
+            var table = document.getElementById("records");
+            for (var i = 1, row; row = table.rows[i]; i++) {
+                table.deleteRow(i);
+            }
         }
       
         function tableRowClick(id) {
@@ -276,23 +306,41 @@
                         var result = JSON.parse(addCategoryHttpRequest.responseText);
                         var categories = result.categories
                         
-                        var cateList = document.getElementById("cate_list");
-                        cateList.innerHTML= '';
+                        var cateInList = document.getElementById("cate_in_list");
+                        var cateOutList = document.getElementById("cate_out_list");
+                        cateInList.innerHTML= '';
+                        cateOutList.innerHTML= '';
                         var select = document.getElementById("dialogInputCategory");
                         removeAllOptions(select);
+                        
+                        var arrayCateIn = [];
+                        var arrayCateOut = [];
                         for (var i = 0 ; i < result.count ; i++) {
                             var cate = categories[i].cate.split(".");                            
                             var li = document.createElement("li");
+                            li.setAttribute("id", cate[1]);
                             li.appendChild(document.createTextNode(cate[1]+":"));
                             var select_option = new Option(cate[1], cate[1]);
                             
                             if (cate[0] == "out") {
-                                li.setAttribute("class", "outputSettingClass");
+                                li.setAttribute("class", "outputSettingClass");                                
                                 select_option.setAttribute("class", "outputSettingClass");
+                                arrayCateOut.push(select_option)
+                                cateOutList.appendChild(li);
+                            } else {
+                                arrayCateIn.push(select_option)
+                                cateInList.appendChild(li);
                             }
-                            cateList.appendChild(li);
-                            select.options.add(select_option);
+                            
                         }
+                        
+                        for (var i = 0 ; i < arrayCateIn.length ; i++) {
+                            select.options.add(arrayCateIn[i]);
+                        }
+                        for (var i = 0 ; i < arrayCateOut.length ; i++) {
+                            select.options.add(arrayCateOut[i]);
+                        }
+                        getStatisticsDelay();
                     }
                 }
             }
@@ -339,6 +387,7 @@
                         row.ondblclick = function() {
                             tableRowClick(result.id);
                         }
+                        getStatisticsDelay();
                     }
                 }
             }
@@ -373,6 +422,7 @@
                                 break;
                             }
                         }
+                        getStatisticsDelay();                       
                     }
                 }
             }
@@ -396,7 +446,8 @@
                                 table.deleteRow(i);
                                 break;
                             }
-                        }
+                        }                        
+                        getStatisticsDelay();                       
                     }
                 }
             }
@@ -422,29 +473,85 @@
                         var result = JSON.parse(getCategoriesHttpRequest.responseText);
                         var categories = result.categories
                         
-                        var ul = document.getElementById("cate_list");
+                        var cateInList = document.getElementById("cate_in_list");
+                        var cateOutList = document.getElementById("cate_out_list");
+                        cateInList.innerHTML= '';
+                        cateOutList.innerHTML= '';
                         var select = document.getElementById("dialogInputCategory");
                         removeAllOptions(select);
+                        
+                        var arrayCateIn = [];
+                        var arrayCateOut = [];
                         for (var i = 0 ; i < result.count ; i++) {
                             var cate = categories[i].cate.split(".");
                             var li = document.createElement("li");
-                            li.appendChild(document.createTextNode(cate[1]+":"));
+                            li.setAttribute("id", cate[1]);
+                            li.appendChild(document.createTextNode(cate[1]+" :"));
                             var select_option = new Option(cate[1], cate[1]);
                             
                             if (cate[0] == "out") {
-                                li.setAttribute("class", "outputSettingClass");
+                                li.setAttribute("class", "outputSettingClass");                                
                                 select_option.setAttribute("class", "outputSettingClass");
+                                arrayCateOut.push(select_option)
+                                cateOutList.appendChild(li);
+                            } else {
+                                arrayCateIn.push(select_option)
+                                cateInList.appendChild(li);
                             }
                             
-                            ul.appendChild(li);
-                            select.options.add(select_option);
+                        }
+                        
+                        for (var i = 0 ; i < arrayCateIn.length ; i++) {
+                            select.options.add(arrayCateIn[i]);
+                        }
+                        for (var i = 0 ; i < arrayCateOut.length ; i++) {
+                            select.options.add(arrayCateOut[i]);
                         }
                     }
                 }
             }
             getCategoriesHttpRequest.open('GET', '/categories');
             getCategoriesHttpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            getCategoriesHttpRequest.send();          
+            getCategoriesHttpRequest.send();
+        }
+        
+        function getStatisticsDelay() {
+            setTimeout(function() {
+                getStatistics();
+                }, 1000); // 1s                        
+        }
+        
+        function getStatistics() {
+            // get All for init
+            getStatisticsHttpRequest = new XMLHttpRequest();
+            getStatisticsHttpRequest.onreadystatechange = function() {
+                if (getStatisticsHttpRequest.readyState == 4) {
+                    if (getStatisticsHttpRequest.status === 200) {                      
+                        var result = JSON.parse(getStatisticsHttpRequest.responseText);
+                        var in_count = result.in_count;
+                        var out_count = result.out_count;
+                        var cate_count = result.count;
+                        var categories_data = result.categories_data;
+                              
+                        document.getElementById("in_count").innerHTML="收入 :  " + in_count;                     
+                        document.getElementById("out_count").innerHTML="支出 : " + out_count;                     
+                        console.info("in_count = " + in_count + ", out_count = " + out_count);
+                        for (var i = 0 ; i < cate_count ; i++) {
+                            var cate_name = categories_data[i].cate.split(".");
+                            var cate_money_count = categories_data[i].money_count;
+                            if (document.getElementById(cate_name[1]) != null) {
+                                document.getElementById(cate_name[1]).innerHTML = cate_name[1] + " :    " + cate_money_count;
+                            }
+                        }                        
+                    }
+                }
+            }
+             var params =
+                "select_year=" + document.getElementById('year_picker').value + 
+                "&select_month=" + document.getElementById('month_picker').value;
+            getStatisticsHttpRequest.open('GET', '/statistics'+"?"+params);
+            getStatisticsHttpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            getStatisticsHttpRequest.send();
         }
       
     </script>
@@ -463,8 +570,25 @@
                         style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">新增</button>
                 <button id="newCategory" type="button" onclick="newCategory()" 
                         style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">新增分類</button>
+<!--
                 <button id="manageCategories" type="button" onclick="manageCategories()" 
                         style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">管理分類</button>
+-->
+                <select id="month_picker" type="button" style="float:right;margin-top:9px;margin-right:20px;box-shadow: 1px 1px 5px #888888;" onchange="requestAllRecords()">
+                    <option value='01'>1月</option>
+                    <option value='02'>2月</option>
+                    <option value='03'>3月</option>
+                    <option value='04'>4月</option>
+                    <option value='05'>5月</option>
+                    <option value='06'>6月</option>
+                    <option value='07'>7月</option>
+                    <option value='08'>8月</option>
+                    <option value='09'>9月</option>
+                    <option value='10'>10月</option>
+                    <option value='11'>11月</option>
+                    <option value='12'>12月</option>
+                </select>
+                <select id="year_picker" type="button" style="float:right;margin-top:9px;margin-right:10px;box-shadow: 1px 1px 5px #888888;" onchange="requestAllRecords()"></select>
             </div>
         </div>
         
@@ -521,10 +645,10 @@
                 <h1 style="text-align:center;background-color:#F44336;margin:0;height:27px;font-size:100%">相關資訊</h1>
                 <div id="separator"></div>
                 <ul>
-                    <li>總收入:</li>
-                    <li>總支出:</li>
-                    <li>分類:</li>
-                        <ul id="cate_list"></ul>            
+                    <li id="in_count" style="color:#00BCD4">收入 :</li>
+                        <ul id="cate_in_list"></ul>            
+                    <li id="out_count" style="color:#00BCD4">支出 :</li>
+                        <ul id="cate_out_list"></ul>            
                 </ul>
             </div>
             <div id="record_area" style="background: rgba(0, 0, 0, .8);height:100%;width:65%;float:left;border: 1px solid black;box-sizing: border-box;overflow-y: auto;">
