@@ -211,7 +211,7 @@ class MoneyStatisticsHandler(webapp2.RequestHandler):
         out_count = 0
         for c in split_categories:
             split_cate = c.encode('utf-8').split(".")
-            records = MoneyRecord.query_record_by_name_and_category(str(user), split_cate[1]).fetch()
+            records = MoneyRecord.query_record_by_name_and_category(str(user), c.encode('utf-8')).fetch()
             money_count = 0
             for record in records :
                 if filter_year_and_month in record.user_date :

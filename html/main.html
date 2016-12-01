@@ -33,7 +33,7 @@
 
     /* The Close Button */
     .close_symbol {
-        color: #F44336;
+        color: #212121;
         float: right;
         font-size: 28px;
         margin: 0;
@@ -215,7 +215,7 @@
             requestAllRecordsHttpRequest = new XMLHttpRequest();
             requestAllRecordsHttpRequest.onreadystatechange = function() {
                 if (requestAllRecordsHttpRequest.readyState == 4) {
-                    if (requestAllRecordsHttpRequest.status === 200) {                      
+                    if (requestAllRecordsHttpRequest.status === 200) {  
                         clearTableRecords();
                         
                         var result = JSON.parse(requestAllRecordsHttpRequest.responseText);  
@@ -229,13 +229,21 @@
                             var num = table.rows.length;
                             var row = table.insertRow(num);
 
-                            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-
+                            var type = content[i].category.split(".")[0];
+                            var cate = content[i].category.split(".")[1];
+                            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:                            
                             row.insertCell(0).innerHTML = content[i].date;
-                            row.insertCell(1).innerHTML = content[i].cost;
-                            row.insertCell(2).innerHTML = content[i].category;
+                            var cell1 = row.insertCell(1);
+                            cell1.innerHTML = content[i].cost;
+                            var cell2 = row.insertCell(2);
+                            cell2.innerHTML = cate;
+                            cell2.setAttribute("cate_value", content[i].category);
                             row.insertCell(3).innerHTML = content[i].comment; 
                             row.key=content[i].id;
+                            if (type == "out") {
+                                cell1.style.color = "#F44336";
+                                cell2.style.color = "#F44336";
+                            }
 //                            (function(i) {
 //                                row.ondblclick = function() {
 //                                    tableRowClick(content[i].id);
@@ -267,8 +275,8 @@
         
         function clearTableRecords() {
             var table = document.getElementById("records");
-            for (var i = 1, row; row = table.rows[i]; i++) {
-                table.deleteRow(i);
+            while(table.rows.length > 1) {
+                table.deleteRow(1);
             }
         }
       
@@ -280,7 +288,7 @@
                 if (row.key == id) {
                     document.getElementById('dialogInputDate').value = row.cells[0].innerHTML;
                     document.getElementById('dialogInputCost').value = row.cells[1].innerHTML;
-                    document.getElementById('dialogInputCategory').value = row.cells[2].innerHTML;
+                    document.getElementById('dialogInputCategory').value = row.cells[2].getAttribute("cate_value");
                     document.getElementById('dialogInputComment').value = row.cells[3].innerHTML;
                     // assign id to the dialog key attribute
                     document.getElementById('operateRecordDialog').key=row.key;
@@ -313,7 +321,9 @@
             addCateDialog.style.display = "none";
         }
         
-        function newCategory() {  
+        function newCategory() { 
+            document.getElementById('addCateForm').reset();
+            document.getElementById('addCateType').selectedIndex = -1;
             openAddCateDialog();
         }
         
@@ -346,7 +356,7 @@
                             var li = document.createElement("li");
                             li.setAttribute("id", cate[1]);
                             li.appendChild(document.createTextNode(cate[1]+":"));
-                            var select_option = new Option(cate[1], cate[1]);
+                            var select_option = new Option(cate[1], categories[i].cate);
                             
                             if (cate[0] == "out") {
                                 li.setAttribute("class", "outputSettingClass");                                
@@ -387,6 +397,9 @@
             document.getElementById('dialogInputCategory').selectedIndex = -1;
             
             document.getElementById('operateRecordDialogTitle').innerHTML = "新增資料";
+            
+            var today = new Date();
+            document.getElementById('dialogInputDate').value = moment(today.toString()).format('YYYY-MM-DD');
         }
       
         function addRecordData() {
@@ -406,12 +419,21 @@
                         var num = table.rows.length;
                         var row = table.insertRow(num);
 
+                        var type = result.category.split(".")[0];
+                        var cate = result.category.split(".")[1];
                         // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
                         row.insertCell(0).innerHTML = result.date;
-                        row.insertCell(1).innerHTML = result.cost;
-                        row.insertCell(2).innerHTML = result.category;
+                        var cell1 = row.insertCell(1);
+                        cell1.innerHTML = result.cost;
+                        var cell2 = row.insertCell(2);
+                        cell2.innerHTML = cate;
+                        cell2.setAttribute("cate_value", result.category);
                         row.insertCell(3).innerHTML = result.comment; 
                         row.key=result.id;
+                        if (type == "out") {
+                            cell1.style.color = "#F44336";
+                            cell2.style.color = "#F44336";
+                        }
 //                        row.ondblclick = function() {
 //                            tableRowClick(result.id);
 //                        }
@@ -452,10 +474,21 @@
                         var table = document.getElementById("records");
                         for (var i = 0, row; row = table.rows[i]; i++) {
                             if (row.key == currentKey) {
+                                var type = result.category.split(".")[0];
+                                var cate = result.category.split(".")[1];
                                 row.cells[0].innerHTML = result.date;
-                                row.cells[1].innerHTML = result.cost;
-                                row.cells[2].innerHTML = result.category;
+                                var cell1 = row.cells[1];
+                                cell1.innerHTML = result.cost;
+                                var cell2 = row.cells[2];
+                                cell2.innerHTML = cate;
                                 row.cells[3].innerHTML = result.comment; 
+                                if (type == "out") {
+                                    cell1.style.color = "#F44336";
+                                    cell2.style.color = "#F44336";
+                                } else {
+                                    cell1.style.color = "white";
+                                    cell2.style.color = "white";
+                                }
                                 break;
                             }
                         }
@@ -524,7 +557,7 @@
                             var li = document.createElement("li");
                             li.setAttribute("id", cate[1]);
                             li.appendChild(document.createTextNode(cate[1]+" :"));
-                            var select_option = new Option(cate[1], cate[1]);
+                            var select_option = new Option(cate[1], categories[i].cate);
                             
                             if (cate[0] == "out") {
                                 li.setAttribute("class", "outputSettingClass");                                
@@ -599,14 +632,14 @@
         <div id="header" style="background-color:#009688;color:#FCFCFC;position:fixed;width:100%; top:0px; left:0px;height:135px">
             <div style="width:100%">
                 <img src="/static/money.png" style="height:90px;width:150px;margin:3px;float:left">
-                <h1 id="user_name" style="text-align:right;margin-bottom:0; padding-right:20px; font-size:100%;position:absolute;right:0;top:50px"></h1>
-                <h1 style="text-align:center;margin-bottom:0;margin-top:0;font-size:45px;position:absolute;left:170px;top:20px">哇!!金庫</h1>
+                <h1 id="user_name" style="text-align:right;margin-bottom:0; padding-right:20px; font-size:100%;position:absolute;right:0;top:60px"></h1>
+                <h1 style="text-align:center;margin-bottom:0;margin-top:0;font-size:45px;position:absolute;left:170px;top:15px">哇!!金庫</h1>
             </div>
             <div id="button_area" style="height:40px;width:100%;background-color:#FFf;margin-top:96px">
                 <button id="newRecord" type="button" onclick="newRecordData()" 
-                        style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">新增</button>
+                        style="margin-top:9px;margin-left:6px;background-color:buttonface;border: none;box-shadow: 1px 1px 5px #888888;">新增資料</button>
                 <button id="newCategory" type="button" onclick="newCategory()" 
-                        style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">新增分類</button>
+                        style="margin-top:9px;margin-left:6px;background-color:buttonface;border: none;box-shadow: 1px 1px 5px #888888;">新增分類</button>
 <!--
                 <button id="manageCategories" type="button" onclick="manageCategories()" 
                         style="margin-top:9px;margin-left:6px;background-color:#64FFDA;border: none;box-shadow: 1px 1px 5px #888888;">管理分類</button>
@@ -633,8 +666,8 @@
             <div id="operateRecordDialog" class="operateRecordDialogModal">
                 <!-- Modal content -->
                 <div class="operateRecordDialogModal-content">
-                    <div class="operateRecordDialogModal-header" style="background-color:#00BCD4;margin:0;">
-                        <h2 id="operateRecordDialogTitle" style="color:black;background-color:#00BCD4;margin:0;margin-left:10px;display:inline-block;" >新增資料</h2>
+                    <div class="operateRecordDialogModal-header" style="background-color:#9E9E9E;margin:0;">
+                        <h2 id="operateRecordDialogTitle" style="color:black;background-color:#9E9E9E;margin:0;margin-left:10px;display:inline-block;" >新增資料</h2>
                         <p id="close_record_symbol" class="close_symbol" style="display:inline-block;margin:auto;margin-right:5px">&#x274E</p>
                     </div>
                     
@@ -660,8 +693,8 @@
             </div>
             <div id="addCateDialog" class="addCateDialogModal">
                 <div class="addCateDialogModal-content">
-                    <div style="background-color:#00BCD4;margin:0;">
-                        <h2 style="color:black;background-color:#00BCD4;margin:0;margin-left:10px;display:inline-block;" >新增分類</h2>
+                    <div style="background-color:#9E9E9E;margin:0;">
+                        <h2 style="color:black;background-color:#9E9E9E;margin:0;margin-left:10px;display:inline-block;" >新增分類</h2>
                         <p id="close_add_cate_symbol" class="close_symbol" style="display:inline-block;margin:auto;margin-right:5px">&#x274E</p>
                     </div>
                     <form id="addCateForm" style="color:black;margin-top:10px;margin-left:10px">
@@ -680,7 +713,7 @@
                 </div>
             </div>
             <div id="info_area" style="background: rgba(0, 0, 0, .6);height:100%;width:35%;border: 1px solid black;box-sizing: border-box;float:left;overflow-y: auto;">
-                <h1 style="text-align:center;background-color:#F44336;margin:0;height:27px;font-size:100%">相關資訊</h1>
+                <h1 style="text-align:center;background-color:#F44336;margin:0;height:27px;font-size:100%">分類資訊</h1>
                 <div id="separator"></div>
                 <ul>
                     <li id="in_count" style="color:#00BCD4">收入 :</li>
