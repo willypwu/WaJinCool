@@ -24,18 +24,19 @@
 
     /* Modal Content/Box */
     .operateRecordDialogModal-content {
-        background-color: #fefefe;
+        background-color: #E0E0E0;
         margin: 15% auto; /* 15% from the top and centered */
-        padding: 20px;
+        padding: 0px;
         border: 1px solid #888;
-        width: 80%; /* Could be more or less, depending on screen size */
+        width: 50%; /* Could be more or less, depending on screen size */
     }
 
     /* The Close Button */
     .close_symbol {
-        color: #aaa;
+        color: #F44336;
         float: right;
         font-size: 28px;
+        margin: 0;
         font-weight: bold;
     }
 
@@ -68,11 +69,11 @@
 
     /* Modal Content/Box */
     .addCateDialogModal-content {
-        background-color: #fefefe;
+        background-color: #E0E0E0;
         margin: 15% auto; /* 15% from the top and centered */
-        padding: 20px;
+        padding: 0px;
         border: 1px solid #888;
-        width: 80%; /* Could be more or less, depending on screen size */
+        width: 50%; /* Could be more or less, depending on screen size */
     }
     
     .outputSettingClass {
@@ -632,48 +633,49 @@
             <div id="operateRecordDialog" class="operateRecordDialogModal">
                 <!-- Modal content -->
                 <div class="operateRecordDialogModal-content">
-                    <div class="operateRecordDialogModal-header">
-                        <span id="close_record_symbol" class="close_symbol">x</span>
-                        <h2 id="operateRecordDialogTitle" style="color:black">新增資料</h2>
+                    <div class="operateRecordDialogModal-header" style="background-color:#00BCD4;margin:0;">
+                        <h2 id="operateRecordDialogTitle" style="color:black;background-color:#00BCD4;margin:0;margin-left:10px;display:inline-block;" >新增資料</h2>
+                        <p id="close_record_symbol" class="close_symbol" style="display:inline-block;margin:auto;margin-right:5px">&#x274E</p>
                     </div>
-                    <form id="dialogRecordForm" style="color:black">
+                    
+                    <form id="dialogRecordForm" style="color:black;margin-top:10px;margin-left:10px">
                         日期：
-                        <input id="dialogInputDate" type="text" name="date" readonly="true">
+                        <input id="dialogInputDate" type="text" name="date" readonly="true" style="width:80px">
                         <br />
                         金額：
-                        <input id="dialogInputCost" type="number" pattern="\d*" name="cost">
+                        <input id="dialogInputCost" type="number" pattern="\d*" name="cost" style="width:80px">
                         <br />
                         分類：
-                        <select id="dialogInputCategory"></select>
+                        <select id="dialogInputCategory" style="width:80px"></select>
                         <br />
                         備註：
-                        <input id="dialogInputComment" type="text" name="comment">
+                        <input id="dialogInputComment" type="text" name="comment" style="width:80px">
                     </form>
-                    <div class="operateRecordDialogModal-footer">
-                        <button id="addRecordBtn" type="button" onclick=addRecordData()>儲存</button>
-                        <button id="modifyRecordBtn"type="button" onclick=modifyRecordData()>修改</button>
-                        <button id="deleteRecordBtn" type="button" onclick=deleteRecordData()>刪除</button>
+                    <div class="operateRecordDialogModal-footer" style="margin:10px">
+                        <button id="addRecordBtn" type="button" style="margin-left:4px" onclick=addRecordData()>儲存</button>
+                        <button id="modifyRecordBtn" type="button" style="margin-left:4px" onclick=modifyRecordData()>修改</button>
+                        <button id="deleteRecordBtn" type="button" style="margin-left:4px" onclick=deleteRecordData()>刪除</button>
                     </div>
                 </div>
             </div>
             <div id="addCateDialog" class="addCateDialogModal">
                 <div class="addCateDialogModal-content">
-                    <div>
-                        <h2 style="color:black">新增分類</h2>
-                        <span id="close_add_cate_symbol" class="close_symbol">x</span>                        
+                    <div style="background-color:#00BCD4;margin:0;">
+                        <h2 style="color:black;background-color:#00BCD4;margin:0;margin-left:10px;display:inline-block;" >新增分類</h2>
+                        <p id="close_add_cate_symbol" class="close_symbol" style="display:inline-block;margin:auto;margin-right:5px">&#x274E</p>
                     </div>
-                    <form id="addCateForm" style="color:black">
+                    <form id="addCateForm" style="color:black;margin-top:10px;margin-left:10px">
                         分類名稱：
-                        <input id="addCateName" type="text" name="date">
+                        <input id="addCateName" type="text" name="date" style="width:80px">
                         <br />
                         分類類型：
-                        <select id="addCateType">
+                        <select id="addCateType" style="width:80px">
                             <option value="in">收入</option>
                             <option value="out">支出</option>
                         </select>
                     </form>
-                    <div>
-                        <button id="addRecordBtn" type="button" onclick=addCategory()>儲存</button>
+                    <div style="margin:10px">
+                        <button id="addRecordBtn" type="button" style="margin-left:4px" onclick=addCategory()>儲存</button>
                     </div>
                 </div>
             </div>
