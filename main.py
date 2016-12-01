@@ -53,7 +53,9 @@ class CategoryOptions(ndb.Model):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
-        logging.info("*** MainPage *** " + str(user))
+        logging.info("*** MainPage *** " + str(user) + ", " + str(users.is_current_user_admin()))
+        if users.is_current_user_admin() == False:
+            self.response.write('You are not an administrator.')
         user_cat = CategoryOptions.query_categories_by_name(str(user)).fetch()
         if len(user_cat) == 0:
             r = CategoryOptions(

@@ -9,7 +9,7 @@ handlers:
   
 - url: /.*
   script: main.app
-  login: required
+  login: admin
   secure: always
 
 libraries:
