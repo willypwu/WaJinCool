@@ -24,6 +24,12 @@ indexes:
 
 - kind: MoneyRecord
   properties:
+  - name: category
+  - name: user_account_key
+  - name: user_date
+
+- kind: MoneyRecord
+  properties:
   - name: money
   - name: name
   - name: user_date
@@ -50,6 +56,11 @@ indexes:
   - name: name
   - name: user_date
     direction: desc
+
+- kind: MoneyRecord
+  properties:
+  - name: user_account_key
+  - name: user_date
 
 - kind: MoneyRecord
   ancestor: yes
