@@ -55,45 +55,54 @@ class MoneyRecord(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        user = users.get_current_user()
-        logging.info("*** MainPage *** " + str(user) + ", " + str(users.is_current_user_admin()))
+        user_gmail = users.get_current_user()
+        logging.info("*** MainPage *** " + str(user_gmail) + ", " + str(users.is_current_user_admin()))
         if users.is_current_user_admin() is False:
             self.response.write('You are not an administrator.')
 
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
+        results = UserAccount.query(UserAccount.gmail == str(user_gmail)).fetch(1)
         user_account = results[0] if len(results) > 0 else None
         if user_account is None:
-            r = UserAccount(
-                name=str(user),
-                gmail=str(user),
+            user_account = UserAccount(
+                name=str(user_gmail),
+                gmail=str(user_gmail),
                 categories="in.薪資;in.其他收入;out.餐飲;out.其他支出;out.交通"
             )
-            r.put()
+            user_account.put()
             # waiting db create
             time.sleep(3)
+        logging.info("*** MainPage *** cookie value (user id) // " + str(user_account.key.integer_id()))
+        self.response.set_cookie('user_id', str(user_account.key.integer_id()), max_age=360, path='/',
+                                 domain='localhost', secure=False)
         t = env.get_template('html/main.html')
         self.response.write(t.render(""))
 
 
 class MoneyRecordHandler(webapp2.RequestHandler):
-    def get(self):         
-        user = users.get_current_user()
-        select_year = self.request.get('select_year')
-        select_month = self.request.get('select_month')
-        logging.info("*** MoneyRecordHandler get *** " + str(user) + ", " + select_year + ", " + select_month)
+    def get(self):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
 
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
         if user_account is None:
             self.error(403)
             return
+
+        select_year = self.request.get('select_year')
+        select_month = self.request.get('select_month')
+        logging.info("*** MoneyRecordHandler get *** " + str(user_id) + ", " + select_year + ", " + select_month)
+
         records = MoneyRecord.query_record_by_name(user_account.key).fetch()
         content = []
         count = 0
         filter_year_and_month = str(select_year+"-"+select_month)
         for record in records:
             logging.info("record // name = %s , date = %s, money = %d, category = %s, comment =%s, id = %s",
-                         record.user_account_key.get().name, record.user_date, record.money, record.category, record.comment, record.key)
+                         record.user_account_key.get().name, record.user_date, record.money,
+                         record.category, record.comment, record.key)
             if filter_year_and_month in record.user_date:
                 logging.info("matched data : " + record.user_date)
                 content.append({
@@ -105,25 +114,30 @@ class MoneyRecordHandler(webapp2.RequestHandler):
                 })
                 count = count + 1
         result = {
-            "user": str(user),
+            "user": str(user_account.name),
             "count": count,
             "content": content
         }
         json_obj = json.dumps(result)
         self.response.out.write(json_obj)
         
-    def post(self):            
+    def post(self):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        if user_account is None:
+            self.error(403)
+            return
+
         logging.info("*** MoneyRecordHandler post ***")        
         logging.info("post // user_date : %s , cost : %s , category : %s , comment : %s", 
                      self.request.get('date'), self.request.get('cost'),
                      self.request.get('category'), self.request.get('comment'))
-        
-        user = users.get_current_user()
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
-        if user_account is None:
-            self.error(403)
-            return
+
         r = MoneyRecord(
             user_date=self.request.get('date'),
             money=int(self.request.get('cost')),
@@ -141,7 +155,18 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         json_obj = json.dumps(result)
         self.response.out.write(json_obj)
         
-    def delete(self, id):            
+    def delete(self, id):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        if user_account is None:
+            self.error(403)
+            return
+
         logging.info("*** MoneyRecordHandler delete *** " + id)  
         ndb.Key(urlsafe=id).delete()
         result = {
@@ -150,7 +175,18 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         json_obj = json.dumps(result)
         self.response.out.write(json_obj)
         
-    def put(self, id):            
+    def put(self, id):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        if user_account is None:
+            self.error(403)
+            return
+
         logging.info("*** MoneyRecordHandler put ***" + id)  
         logging.info("put // user_date : %s , cost : %s , category : %s , comment : %s", 
                      self.request.get('date'), self.request.get('cost'),
@@ -172,15 +208,20 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         
         
 class CategoryHandler(webapp2.RequestHandler):
-    def get(self): 
-        user = users.get_current_user()
-        logging.info("*** CategoryHandler get *** " + str(user))
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
+    def get(self):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
         if user_account is None:
             self.error(403)
             return
-                
+
+        logging.info("*** CategoryHandler get *** " + str(user_account.name))
+
         split_categories = user_account.categories.split(";")
         categories = []
         for c in split_categories:
@@ -188,33 +229,34 @@ class CategoryHandler(webapp2.RequestHandler):
                 "cate": c.encode('utf-8')
             })
         result = {
-            "user": str(user),
+            "user": str(user_account.name),
             "count": len(split_categories),
             "categories": categories
         }
         json_obj = json.dumps(result)
         self.response.out.write(json_obj)
         
-    def post(self):            
-        user = users.get_current_user()
-        logging.info("*** CategoryHandler post *** " + str(user))
-        logging.info("post // cate name : %s , cate type : %s",
-                     self.request.get('cate_name'), self.request.get('cate_type'))
-        add_cate = self.request.get('cate_type') + "." + self.request.get('cate_name')
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
+    def post(self):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
         if user_account is None:
             self.error(403)
             return
+
+        logging.info("*** CategoryHandler post *** " + str(user_account.name))
+        logging.info("post // cate name : %s , cate type : %s",
+                     self.request.get('cate_name'), self.request.get('cate_type'))
+        add_cate = self.request.get('cate_type') + "." + self.request.get('cate_name')
+
         update_item = user_account
         update_item.categories = update_item.categories + ";" + add_cate
         update_item.put()
 
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
-        if user_account is None:
-            self.error(403)
-            return
         split_categories = user_account.categories.split(";")
         categories = []
         for c in split_categories:
@@ -223,7 +265,7 @@ class CategoryHandler(webapp2.RequestHandler):
             })
             
         result = {
-            "user": str(user),
+            "user": str(user_account.name),
             "count": len(split_categories),
             "categories": categories
         }
@@ -232,19 +274,24 @@ class CategoryHandler(webapp2.RequestHandler):
 
 
 class MoneyStatisticsHandler(webapp2.RequestHandler):
-    def get(self): 
-        user = users.get_current_user()
-        logging.info("*** MoneyStatisticsHandler get *** " + str(user))
+    def get(self):
+        # get user_id by cookie
+        user_id = self.request.cookies.get('user_id')
+        if user_id is None:
+            self.error(403)
+            return
+
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        if user_account is None:
+            self.error(403)
+            return
+
+        logging.info("*** MoneyStatisticsHandler get *** " + str(user_account.name))
         # year+month
         select_year = self.request.get('select_year')
         select_month = self.request.get('select_month')
         filter_year_and_month = str(select_year+"-"+select_month)        
         # get all cates
-        results = UserAccount.query(UserAccount.name == str(user)).fetch(1)
-        user_account = results[0] if len(results) > 0 else None
-        if user_account is None:
-            self.error(403)
-            return
         split_categories = user_account.categories.split(";")
         # get corresponding record
         categories_data = []
@@ -270,7 +317,7 @@ class MoneyStatisticsHandler(webapp2.RequestHandler):
             })
 
         result = {
-            "user": str(user),
+            "user": str(user_account.name),
             "in_count": in_count,
             "out_count": out_count,
             "count": len(split_categories),
