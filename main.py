@@ -20,6 +20,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import users
 from datetime import datetime
 
+import uuid
 import time
 import json
 import logging
@@ -28,6 +29,11 @@ import sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 env = Environment(loader=FileSystemLoader('./'))
+
+
+class Token(ndb.Model):
+    uuid = ndb.StringProperty()
+    account_id = ndb.StringProperty()
 
 
 class UserAccount(ndb.Model):
@@ -53,6 +59,31 @@ class MoneyRecord(ndb.Model):
         return cls.query(ndb.AND(MoneyRecord.user_account_key == user_account_key, MoneyRecord.category == cate)).order(cls.user_date)
 
 
+class BaseHandler(webapp2.RequestHandler):
+    original_locale = "en"
+
+    def __init__(self, request, response):
+        self.initialize(request, response)
+
+    def valid_user(self):
+        # get user_id by cookie
+        token_uuid = self.request.cookies.get('user_id')
+        token = Token.query(Token.uuid == str(token_uuid)).fetch(1)[0]
+        logging.info("valid_user // uuid : " + str(token_uuid) + ", token : " + str(token))
+        if token is None:
+            self.error(403)
+            return None
+        user_id = token.account_id
+        if user_id is None:
+            self.error(403)
+            return None
+        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        if user_account is None:
+            self.error(403)
+            return None
+        return user_account
+
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         user_gmail = users.get_current_user()
@@ -62,38 +93,42 @@ class MainPage(webapp2.RequestHandler):
 
         results = UserAccount.query(UserAccount.gmail == str(user_gmail)).fetch(1)
         user_account = results[0] if len(results) > 0 else None
-        if user_account is None:
+        token = Token.query(Token.account_id == str(str(user_account.key.integer_id()))).fetch(1)[0] if len(results) > 0 else None
+        if user_account is None or token is None:
+            # new user account
             user_account = UserAccount(
                 name=str(user_gmail),
                 gmail=str(user_gmail),
                 categories="in.薪資;in.其他收入;out.餐飲;out.其他支出;out.交通"
             )
             user_account.put()
+            # gen token
+            random_id = uuid.uuid4()
+            token = Token(
+                uuid=str(random_id),
+                account_id=str(user_account.key.integer_id())
+            )
+            token.put()
+
             # waiting db create
             time.sleep(3)
-        logging.info("*** MainPage *** cookie value (user id) // " + str(user_account.key.integer_id()))
-        self.response.set_cookie('user_id', str(user_account.key.integer_id()), max_age=360, path='/',
+        logging.info("*** MainPage *** cookie value (user id) // " + str(user_account.key.integer_id()) + ", " + str(token.uuid))
+        self.response.set_cookie('user_id', str(token.uuid), max_age=360, path='/',
                                  domain='localhost', secure=False)
         t = env.get_template('html/main.html')
         self.response.write(t.render(""))
 
 
-class MoneyRecordHandler(webapp2.RequestHandler):
+class MoneyRecordHandler(BaseHandler):
     def get(self):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         select_year = self.request.get('select_year')
         select_month = self.request.get('select_month')
-        logging.info("*** MoneyRecordHandler get *** " + str(user_id) + ", " + select_year + ", " + select_month)
+        logging.info("*** MoneyRecordHandler get *** " + select_year + ", " + select_month)
 
         records = MoneyRecord.query_record_by_name(user_account.key).fetch()
         content = []
@@ -122,15 +157,9 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
         
     def post(self):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** MoneyRecordHandler post ***")        
@@ -156,15 +185,9 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
         
     def delete(self, id):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** MoneyRecordHandler delete *** " + id)  
@@ -176,15 +199,9 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
         
     def put(self, id):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** MoneyRecordHandler put ***" + id)  
@@ -207,17 +224,11 @@ class MoneyRecordHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
         
         
-class CategoryHandler(webapp2.RequestHandler):
+class CategoryHandler(BaseHandler):
     def get(self):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** CategoryHandler get *** " + str(user_account.name))
@@ -237,15 +248,9 @@ class CategoryHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
         
     def post(self):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** CategoryHandler post *** " + str(user_account.name))
@@ -273,17 +278,11 @@ class CategoryHandler(webapp2.RequestHandler):
         self.response.out.write(json_obj)
 
 
-class MoneyStatisticsHandler(webapp2.RequestHandler):
+class MoneyStatisticsHandler(BaseHandler):
     def get(self):
-        # get user_id by cookie
-        user_id = self.request.cookies.get('user_id')
-        if user_id is None:
-            self.error(403)
-            return
-
-        user_account = ndb.Key(UserAccount, long(user_id)).get()
+        user_account = self.valid_user()
         if user_account is None:
-            self.error(403)
+            logging.info("invalid user")
             return
 
         logging.info("*** MoneyStatisticsHandler get *** " + str(user_account.name))
